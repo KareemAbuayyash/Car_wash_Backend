@@ -3,9 +3,11 @@ package com.carwash.auth;
 import com.carwash.user.User;
 import com.carwash.user.UserRepository;
 import com.carwash.user.UserRole;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
@@ -43,5 +45,12 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
         return new LoginResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), token);
+    }
+
+    @Transactional(readOnly = true)
+    public RegisteredUserResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return RegisteredUserResponse.from(user);
     }
 }
